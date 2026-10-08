@@ -1,0 +1,56 @@
+{
+  "name": "opencode-ssh-images",
+  "displayName": "OpenCode SSH Images",
+  "description": "Paste, drop or choose local images for OpenCode CLI in VS Code Remote-SSH.",
+  "version": "0.2.1",
+  "publisher": "local-opencode-tools",
+  "repository": { "type": "git", "url": "git+https://github.com/peitsan/opencode-ssh-imageloader.git" },
+  "bugs": { "url": "https://github.com/peitsan/opencode-ssh-imageloader/issues" },
+  "homepage": "https://github.com/peitsan/opencode-ssh-imageloader#readme",
+  "license": "MIT",
+  "engines": { "vscode": "^1.94.0" },
+  "categories": ["Other"],
+  "extensionKind": ["workspace"],
+  "main": "./dist/extension.cjs",
+  "capabilities": { "untrustedWorkspaces": { "supported": false } },
+  "contributes": {
+    "commands": [
+      { "command": "opencodeSshImages.open", "title": "%command.open%" },
+      { "command": "opencodeSshImages.installBridge", "title": "%command.installBridge%" }
+    ],
+    "keybindings": [
+      { "command": "opencodeSshImages.open", "key": "ctrl+alt+i", "mac": "cmd+alt+i" }
+    ],
+    "configuration": {
+      "title": "%configuration.title%",
+      "properties": {
+        "opencodeSshImages.port": {
+          "type": "number", "default": 0, "minimum": 0, "maximum": 65535,
+          "description": "%configuration.port.description%"
+        },
+        "opencodeSshImages.maxImageSizeMB": {
+          "type": "number", "default": 10, "minimum": 1, "maximum": 20,
+          "description": "%configuration.maxImageSize.description%"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "esbuild src/extension.cjs --bundle --platform=node --target=node20 --main-fields=module,main --external:vscode --outfile=dist/extension.cjs",
+    "vscode:prepublish": "npm run build",
+    "test": "node --test test/*.test.cjs",
+    "test:live": "node test/live.cjs",
+    "test:tui": "node test/tui-live.cjs",
+    "test:bundle": "npm run build && node test/bundle.cjs",
+    "check": "tsc -p jsconfig.json",
+    "package": "vsce package --no-dependencies --allow-missing-repository"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.3",
+    "@types/node": "^22.0.0",
+    "@types/vscode": "1.94.0",
+    "@vscode/vsce": "3.7.1",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": { "jsonc-parser": "3.3.1" }
+}

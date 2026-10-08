@@ -1,0 +1,7 @@
+{
+  "command.open": "OpenCode: Add local image attachments (SSH)",
+  "command.installBridge": "OpenCode: Install/update image attachment CLI plugin",
+  "configuration.title": "OpenCode SSH Images",
+  "configuration.port.description": "Remote OpenCode HTTP port. 0 detects the port from the official extension terminal.",
+  "configuration.maxImageSize.description": "Maximum size of each image (MiB)."
+}

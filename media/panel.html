@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src {{cspSource}}; script-src 'nonce-{{nonce}}';">
+  <link rel="stylesheet" href="{{style}}">
+  <title>OpenCode Image Attachments</title>
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">OPENCODE / REMOTE-SSH</p>
+      <h1 data-i18n="title">OpenCode Image Attachments</h1>
+      <p data-i18n="subtitle">Local images through VS Code SSH to your remote CLI.</p>
+    </div>
+    <span class="badge" data-i18n="badge">Image input</span>
+  </header>
+  <section id="connection" class="connection" aria-label="Current image target">
+    <div class="connection-heading"><span id="indicator" class="indicator"></span><strong id="sessionTitle">Looking for OpenCode CLI…</strong></div>
+    <p id="connectionDetail"></p>
+    <p id="connectionHint" data-i18n="restartHint">Restart OpenCode CLI after the first install or an update.</p>
+    <div class="actions">
+      <button id="connect" data-i18n="connect">Connect / switch</button>
+      <button id="focusTerminal" data-i18n="showTerminal" disabled>Show target terminal</button>
+      <button id="refresh" data-i18n="refresh">Refresh</button>
+    </div>
+  </section>
+  <div id="drop" tabindex="0" role="region" aria-label="Paste or drop images">
+    <strong data-i18n="dropTitle">Click here, then press Ctrl+V / ⌘V to paste a screenshot</strong>
+    <p data-i18n="dropBody">Drop local images here, or choose files below.</p>
+    <label class="picker"><span data-i18n="chooseImages">Choose local images</span><input id="files" type="file" accept="image/png,image/jpeg,image/gif,image/webp" multiple></label>
+  </div>
+  <p class="limits" data-i18n="limits">PNG / JPEG / GIF / WebP · up to 10 images · 40 MiB total.</p>
+  <div id="previews" aria-label="Images ready to attach"></div>
+  <div class="actions">
+    <button id="attach" data-i18n="attach" disabled>Add to CLI input</button>
+    <button id="clear" data-i18n="clear" disabled>Clear selected images</button>
+  </div>
+  <p id="status" role="status" aria-live="polite"></p>
+  <p class="footnote" data-i18n="sendHint">After adding, continue typing in the CLI and press Enter to send. Your model must support image input.</p>
+  <script nonce="{{nonce}}" src="{{script}}"></script>
+</body>
+</html>

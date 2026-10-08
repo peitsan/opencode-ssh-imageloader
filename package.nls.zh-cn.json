@@ -1,0 +1,7 @@
+{
+  "command.open": "OpenCode：添加本地图片附件 (SSH)",
+  "command.installBridge": "OpenCode：安装/更新图片附件 CLI 插件",
+  "configuration.title": "OpenCode SSH 图片附件",
+  "configuration.port.description": "远端 OpenCode HTTP 端口。0 表示从官方扩展创建的终端自动检测。",
+  "configuration.maxImageSize.description": "单张图片最大大小 (MiB)。"
+}
