@@ -26,9 +26,9 @@
       <button id="refresh" data-i18n="refresh">Refresh</button>
     </div>
   </section>
-  <div id="drop" tabindex="0" role="region" aria-label="Paste or drop images">
+  <div id="drop" tabindex="0" role="region" aria-label="Paste or drop images" aria-describedby="dropHelp">
     <strong data-i18n="dropTitle">Click here, then press Ctrl+V / ⌘V to paste a screenshot</strong>
-    <p data-i18n="dropBody">Drop local images here, or choose files below.</p>
+    <p id="dropHelp" data-i18n="dropBody">Drop local images here, or choose files below.</p>
     <label class="picker"><span data-i18n="chooseImages">Choose local images</span><input id="files" type="file" accept="image/png,image/jpeg,image/gif,image/webp" multiple></label>
   </div>
   <p class="limits" data-i18n="limits">PNG / JPEG / GIF / WebP · up to 10 images · 40 MiB total.</p>

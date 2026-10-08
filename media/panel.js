@@ -20,6 +20,7 @@ document.querySelectorAll('[data-i18n]').forEach(element => { element.textConten
 
 function status(text) { byId('status').textContent = text; }
 function render() {
+  document.body.setAttribute('aria-busy', String(busy || reading));
   byId('previews').replaceChildren();
   for (const [index, image] of images.entries()) {
     const card = document.createElement('div');
@@ -75,8 +76,14 @@ document.addEventListener('paste', event => {
   const files = Array.from(event.clipboardData?.items || []).filter(item => item.kind === 'file').map(item => item.getAsFile()).filter(Boolean);
   if (files.length) { event.preventDefault(); void addFiles(files); }
 });
-document.addEventListener('dragover', event => { event.preventDefault(); });
-document.addEventListener('drop', event => { event.preventDefault(); void addFiles(Array.from(event.dataTransfer?.files || [])); });
+byId('drop').addEventListener('click', event => { if (!event.target.closest('.picker')) byId('files').click(); });
+byId('drop').addEventListener('keydown', event => {
+  if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); byId('files').click(); }
+});
+byId('drop').addEventListener('dragenter', event => { event.preventDefault(); byId('drop').classList.add('dragging'); });
+byId('drop').addEventListener('dragover', event => { event.preventDefault(); });
+byId('drop').addEventListener('dragleave', event => { if (!byId('drop').contains(event.relatedTarget)) byId('drop').classList.remove('dragging'); });
+byId('drop').addEventListener('drop', event => { event.preventDefault(); byId('drop').classList.remove('dragging'); void addFiles(Array.from(event.dataTransfer?.files || [])); });
 byId('clear').addEventListener('click', () => { images = []; render(); status(text.cleared); });
 byId('connect').addEventListener('click', () => { busy = true; render(); status(text.connecting); vscode.postMessage({ type: 'connect' }); });
 byId('focusTerminal').addEventListener('click', () => vscode.postMessage({ type: 'focusTerminal' }));
@@ -86,11 +93,9 @@ window.addEventListener('message', event => {
   const message = event.data;
   if (message.type === 'connection') {
     target = message;
-    byId('sessionTitle').textContent = message.title;
     byId('indicator').classList.toggle('online', message.online);
     byId('connectionDetail').textContent = message.port ? `${message.online ? text.connectedState : text.offlineState} · ${message.terminal || (message.pid ? text.serverCli(message.pid) : text.manualCli)} · :${message.port}${message.sessionID ? ` · ${message.sessionID}` : ''}` : '';
     byId('connectionDetail').title = message.directory || '';
-    byId('connectionHint').textContent = message.hint || '';
     byId('connect').textContent = message.online ? text.switchButton : text.connectButton;
   }
   if (message.type === 'attached') { images = []; status(text.attached(message.count)); }

@@ -6,7 +6,7 @@ function terminalPort(terminal) {
   try { return validPort(terminal?.creationOptions?.env?._EXTENSION_OPENCODE_PORT); } catch { return undefined; }
 }
 
-function createTargets(context) {
+function createTargets(context, t = (...args) => args[0]) {
   const passwords = new Map();
   function key(root) { return `sshImages.target:${root.fsPath}`; }
   function remembered(root) { return context.workspaceState?.get(key(root)); }
@@ -36,7 +36,7 @@ function createTargets(context) {
     catch (failure) { error = failure; }
     return { ...candidate, password, session, health, error,
       online: health?.healthy === true,
-      title: session?.title || '会话待识别',
+      title: session?.title || (t('targetWaiting') === 'Waiting for OpenCode CLI' ? 'Session pending' : '会话待识别'),
     };
   }
 
@@ -83,7 +83,7 @@ function createTargets(context) {
   async function authorize(root, candidate) {
     let target = await inspect(root, candidate);
     if (target.error?.status === 401) {
-      const password = await vscode.window.showInputBox({ prompt: 'OpenCode 服务密码 (OPENCODE_SERVER_PASSWORD)', password: true, ignoreFocusOut: true });
+      const password = await vscode.window.showInputBox({ prompt: t('servicePassword'), password: true, ignoreFocusOut: true });
       if (password === undefined) return;
       const prior = passwords.get(target.port);
       passwords.set(target.port, password);
@@ -93,7 +93,7 @@ function createTargets(context) {
         else passwords.set(target.port, prior);
       }
     }
-    if (!target.online) throw target.error || new Error('目标端口不是健康的 OpenCode 服务。');
+    if (!target.online) throw target.error || new Error(t('unhealthyTarget'));
     await context.workspaceState?.update(key(root), { port: target.port });
     return target;
   }
@@ -115,17 +115,17 @@ function createTargets(context) {
     const targets = await discover(root, current);
     const items = targets.map(target => ({
       label: `${target.port === current?.port ? '$(check) ' : ''}${target.title}`,
-      description: `${target.terminal?.name || (target.pid ? `服务器 CLI (PID ${target.pid})` : '手动 CLI')} · :${target.port}${target.online ? '' : target.error?.status === 401 ? ' · 需要密码' : ' · 离线'}`,
-      detail: target.session ? `${target.session.sessionID || '首页 / 新会话'} · ${root.fsPath}` : '尚未获取当前会话名称，升级后请重启 OpenCode CLI',
+      description: `${target.terminal?.name || (target.pid ? t('serverCli', target.pid) : t('manualCli'))} · :${target.port}${target.online ? '' : target.error?.status === 401 ? t('passwordRequired') : t('offline')}`,
+      detail: target.session ? `${target.session.sessionID || t('homeSession')} · ${root.fsPath}` : t('sessionNotSynced'),
       target,
     }));
     items.sort((a, b) => Number(b.target.port === current?.port) - Number(a.target.port === current?.port));
-    const choice = await vscode.window.showQuickPick([...items, { label: '$(add) 输入其他端口…', description: '手动连接远端 OpenCode CLI', target: undefined }], {
-      title: '切换 OpenCode 图片接收目标', placeHolder: '按 session 名称或端口搜索', matchOnDescription: true, matchOnDetail: true,
+    const choice = await vscode.window.showQuickPick([...items, { label: t('addPort'), description: t('manualConnect'), target: undefined }], {
+      title: t('pickTitle'), placeHolder: t('pickPlaceholder'), matchOnDescription: true, matchOnDetail: true,
     });
     if (!choice) return;
     if (choice.target) return authorize(root, choice.target);
-    const value = await vscode.window.showInputBox({ prompt: '远端 OpenCode CLI 端口', value: String(current?.port || remembered(root)?.port || 4096), validateInput: value => { try { validPort(value); } catch (error) { return error.message; } } });
+    const value = await vscode.window.showInputBox({ prompt: t('portPrompt'), value: String(current?.port || remembered(root)?.port || 4096), validateInput: value => { try { validPort(value); } catch (error) { return error.message; } } });
     if (value === undefined) return;
     const port = validPort(value);
     return authorize(root, { port, terminal: vscode.window.terminals.find(terminal => terminalPort(terminal) === port) });

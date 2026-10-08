@@ -1,0 +1,78 @@
+const dictionaries = {
+  en: {
+    workspaceRequired: 'Open a remote project folder in a VS Code Remote-SSH window first.',
+    chooseWorkspace: 'Choose the project directory containing OpenCode CLI',
+    updatePrompt: 'The image CLI plugin has an update. Update it and back up the existing files?',
+    update: 'Update and back up',
+    updateCancelled: 'Plugin update cancelled.',
+    targetWaiting: 'Waiting for OpenCode CLI',
+    targetChoose: 'Choose a target session',
+    panelTitle: 'OpenCode Image Attachments',
+    sessionPanelTitle: title => `Image Attachments · ${title}`,
+    bridgeMissing: 'The CLI image plugin is not loaded. Exit and restart OpenCode CLI in this project, then try again.',
+    bridgeMismatch: 'The CLI image plugin version or project directory does not match. Restart OpenCode CLI in the selected project.',
+    notConnected: 'No OpenCode CLI is connected.',
+    targetOffline: 'The current target is offline. Restart the CLI or choose another target with Connect / switch.',
+    appendNotConfirmed: 'OpenCode did not confirm the attachment append.',
+    stillBusy: 'The previous image batch is still processing. Try opening the panel again shortly.',
+    installed: 'The image and session plugins were installed. Exit and restart OpenCode CLI in this project; the panel will connect automatically.',
+    installedBridge: 'The CLI image plugin was installed or updated. Exit and restart OpenCode CLI.',
+    currentBridge: 'The CLI plugin is already up to date. If it is not loaded, restart OpenCode CLI.',
+    servicePassword: 'OpenCode service password (OPENCODE_SERVER_PASSWORD)',
+    unhealthyTarget: 'The target port is not a healthy OpenCode service.',
+    serverCli: pid => `Server CLI (PID ${pid})`,
+    manualCli: 'Manual CLI',
+    passwordRequired: ' · password required',
+    offline: ' · offline',
+    homeSession: 'Home / new session',
+    sessionNotSynced: 'Current session name unavailable. Restart OpenCode CLI after updating the plugin.',
+    addPort: '$(add) Enter another port…',
+    manualConnect: 'Connect to a remote OpenCode CLI manually',
+    pickTitle: 'Switch OpenCode image target',
+    pickPlaceholder: 'Search by session name or port',
+    portPrompt: 'Remote OpenCode CLI port',
+  },
+  zh: {
+    workspaceRequired: '请先在 VS Code Remote-SSH 窗口中打开远端项目文件夹。',
+    chooseWorkspace: '选择 OpenCode CLI 所在的项目目录',
+    updatePrompt: '图片 CLI 插件有更新，是否更新并备份原文件？',
+    update: '更新并备份',
+    updateCancelled: '已取消插件更新。',
+    targetWaiting: '等待 OpenCode CLI',
+    targetChoose: '请选择目标会话',
+    panelTitle: 'OpenCode 图片附件',
+    sessionPanelTitle: title => `图片附件 · ${title}`,
+    bridgeMissing: 'CLI 图片插件尚未加载。请退出并重新启动此项目中的 OpenCode CLI，再重试。',
+    bridgeMismatch: 'CLI 图片插件版本或项目目录不匹配。请在选定项目目录中重启 OpenCode CLI。',
+    notConnected: '尚未连接 OpenCode CLI。',
+    targetOffline: '当前目标已离线。请重启该 CLI 或点击“连接 / 切换”选择其他目标。',
+    appendNotConfirmed: 'OpenCode 未确认追加附件。',
+    stillBusy: '上一批图片仍在处理中，请稍后再打开面板。',
+    installed: '图片与会话名称插件已安装。请退出并重启此项目中的 OpenCode CLI；面板会自动连接。',
+    installedBridge: '图片 CLI 插件已安装/更新。请退出并重新启动 OpenCode CLI。',
+    currentBridge: 'CLI 插件已是当前版本。若尚未加载，请重启 OpenCode CLI。',
+    servicePassword: 'OpenCode 服务密码 (OPENCODE_SERVER_PASSWORD)',
+    unhealthyTarget: '目标端口不是健康的 OpenCode 服务。',
+    serverCli: pid => `服务器 CLI (PID ${pid})`,
+    manualCli: '手动 CLI',
+    passwordRequired: ' · 需要密码',
+    offline: ' · 离线',
+    homeSession: '首页 / 新会话',
+    sessionNotSynced: '尚未获取当前会话名称，升级后请重启 OpenCode CLI。',
+    addPort: '$(add) 输入其他端口…',
+    manualConnect: '手动连接远端 OpenCode CLI',
+    pickTitle: '切换 OpenCode 图片接收目标',
+    pickPlaceholder: '按 session 名称或端口搜索',
+    portPrompt: '远端 OpenCode CLI 端口',
+  },
+};
+
+function createI18n(language) {
+  const locale = language === undefined ? 'zh' : String(language).toLowerCase().startsWith('zh') ? 'zh' : 'en';
+  return (key, ...args) => {
+    const value = dictionaries[locale][key] ?? dictionaries.en[key] ?? key;
+    return typeof value === 'function' ? value(...args) : value;
+  };
+}
+
+module.exports = { createI18n };

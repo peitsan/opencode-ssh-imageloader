@@ -10,7 +10,8 @@ button, .picker { display: inline-block; border: 0; border-radius: 3px; padding:
 button:hover, .picker:hover { background: var(--vscode-button-hoverBackground); }
 button:disabled { opacity: .5; cursor: default; }
 button:focus-visible, #drop:focus-visible, .picker:focus-within { outline: 2px solid var(--vscode-focusBorder); outline-offset: 2px; }
-#drop { border: 1px dashed var(--vscode-textLink-foreground); background: color-mix(in srgb, var(--vscode-textLink-foreground) 7%, transparent); padding: clamp(20px, 5vw, 36px); margin: 16px 0; border-radius: 6px; text-align: center; }
+#drop { border: 1px dashed var(--vscode-textLink-foreground); background: color-mix(in srgb, var(--vscode-textLink-foreground) 7%, transparent); padding: clamp(20px, 5vw, 36px); margin: 16px 0; border-radius: 6px; text-align: center; cursor: pointer; transition: background-color .15s ease, border-color .15s ease; }
+#drop:hover, #drop.dragging { background: color-mix(in srgb, var(--vscode-textLink-foreground) 14%, transparent); border-color: var(--vscode-focusBorder); }
 .actions { display: flex; flex-wrap: wrap; gap: 4px; }
 .picker input { display: block; max-width: 100%; margin-top: 8px; }
 #connection { overflow-wrap: anywhere; color: var(--vscode-descriptionForeground); }
@@ -21,11 +22,12 @@ button:focus-visible, #drop:focus-visible, .picker:focus-within { outline: 2px s
 #sessionTitle { font-size: 1.1em; }
 #connectionDetail, #connectionHint { margin: 8px 0; font-size: .9em; }
 #connectionHint:empty { display: none; }
-#status { min-height: 24px; overflow-wrap: anywhere; }
+#status { min-height: 24px; margin: 12px 0; overflow-wrap: anywhere; }
 #previews { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr)); gap: 12px; margin: 16px 0; }
 .card { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 10px; border: 1px solid var(--vscode-panel-border); border-radius: 4px; }
 .card img { width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: var(--vscode-textCodeBlock-background); }
 .card span { overflow-wrap: anywhere; }
 .limits, .footnote { color: var(--vscode-descriptionForeground); font-size: .9em; }
 @media (max-width: 440px) { .hero { display: block; } .badge { display: inline-block; margin-top: 12px; } button, .picker { width: 100%; margin-right: 0; } .picker input { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { #drop { transition: none; } }
 @media (forced-colors: active) { .connection, #drop, .card { border-color: CanvasText; } }

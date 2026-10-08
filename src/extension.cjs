@@ -4,6 +4,7 @@ const { pathToFileURL } = require('node:url');
 const { validateBatch, request } = require('./core.cjs');
 const { registerTuiPlugin } = require('./tui-config.cjs');
 const { createTargets } = require('./targets.cjs');
+const { createI18n } = require('./i18n.cjs');
 
 const BRIDGE = 'opencode-ssh-images.js';
 const VERSION = '0.1.0';
@@ -17,15 +18,16 @@ function activate(context) {
   let timer;
   let lastConnectionState;
   const output = vscode.window.createOutputChannel('OpenCode SSH Images');
-  const targets = createTargets(context);
+  const t = createI18n(vscode.env?.language);
+  const targets = createTargets(context, t);
   context.subscriptions.push(output);
   context.subscriptions.push({ dispose() { clearInterval(timer); panel?.dispose(); } });
 
   async function workspace() {
     const folders = vscode.workspace.workspaceFolders;
-    if (!folders?.length) throw new Error('请先在 Remote-SSH 窗口中打开远端项目文件夹。');
+    if (!folders?.length) throw new Error(t('workspaceRequired'));
     if (folders.length === 1) return folders[0].uri;
-    const choice = await vscode.window.showQuickPick(folders.map(folder => ({ label: folder.name, description: folder.uri.fsPath, uri: folder.uri })), { placeHolder: '选择 OpenCode CLI 所在的项目目录' });
+    const choice = await vscode.window.showQuickPick(folders.map(folder => ({ label: folder.name, description: folder.uri.fsPath, uri: folder.uri })), { placeHolder: t('chooseWorkspace') });
     return choice?.uri;
   }
 
@@ -55,8 +57,8 @@ function activate(context) {
       if (!existing || !Buffer.from(existing).equals(Buffer.from(source))) changes.push({ ...file, source, existing });
     }
     if (changes.some(file => file.existing)) {
-      const choice = await vscode.window.showWarningMessage('图片 CLI 插件有更新，是否更新？原文件将备份。', '更新并备份');
-      if (!choice) throw new Error('已取消插件更新。');
+      const choice = await vscode.window.showWarningMessage(t('updatePrompt'), t('update'));
+      if (!choice) throw new Error(t('updateCancelled'));
     }
     const stamp = Date.now();
     await vscode.workspace.fs.createDirectory(vscode.Uri.joinPath(uri, '.opencode', 'plugins'));
@@ -81,14 +83,14 @@ function activate(context) {
       hintKey: !connection.online ? 'targetHint'
         : !connection.session ? 'sessionHint' : '',
     } : {
-      type: 'connection', online: false, title: count > 1 ? '请选择目标会话' : '等待 OpenCode CLI',
+      type: 'connection', online: false, title: count > 1 ? t('targetChoose') : t('targetWaiting'),
       titleKey: count > 1 ? 'chooseTarget' : 'waiting',
       hintKey: count > 1 ? 'multipleHint' : 'searchHint',
     };
     const state = JSON.stringify(message);
     if (state !== lastConnectionState) {
       lastConnectionState = state;
-      if (panel) panel.title = connection?.session ? `图片附件 · ${connection.title}` : 'OpenCode 图片附件';
+      if (panel) panel.title = connection?.session ? t('sessionPanelTitle', connection.title) : t('panelTitle');
       await panel?.webview.postMessage(message);
     }
   }
@@ -127,9 +129,9 @@ function activate(context) {
       ready = JSON.parse(Buffer.from(await vscode.workspace.fs.readFile(vscode.Uri.joinPath(root, '.opencode', 'ssh-images', `ready-${connection.port}.json`))).toString());
       process.kill(ready.pid, 0);
     } catch {
-      throw new Error('CLI 图片插件尚未加载。请退出并重新启动此项目中的 OpenCode CLI，再重试。');
+      throw new Error(t('bridgeMissing'));
     }
-    if (ready.version !== VERSION || ready.directory !== root.fsPath) throw new Error('CLI 图片插件版本或项目目录不匹配。请在选定项目目录中重启 OpenCode CLI。');
+    if (ready.version !== VERSION || ready.directory !== root.fsPath) throw new Error(t('bridgeMismatch'));
   }
 
   async function attach(message) {
@@ -137,11 +139,11 @@ function activate(context) {
       connection = (await targets.auto(root)).target;
       if (!connection) await connect();
     }
-    if (!connection) throw new Error('尚未连接 OpenCode CLI。');
+    if (!connection) throw new Error(t('notConnected'));
     const checked = await targets.inspect(root, connection);
     connection = checked;
     await publishConnection();
-    if (!connection.online) throw new Error('当前目标已离线。请重启该 CLI 或点击“连接 / 切换”选择其他目标。');
+    if (!connection.online) throw new Error(t('targetOffline'));
     await requireBridge();
     const limit = vscode.workspace.getConfiguration('opencodeSshImages', root).get('maxImageSizeMB', 10) * 1024 * 1024;
     const images = validateBatch(message.images, limit);
@@ -160,7 +162,7 @@ function activate(context) {
       // Append only: Enter in the CLI remains the user's send action.
       const text = ` ${markers.join(' ')} `;
       const accepted = await request(connection.port, '/tui/append-prompt', root.fsPath, { text }, connection.password);
-      if (accepted !== true) throw new Error('OpenCode 未确认追加附件。');
+      if (accepted !== true) throw new Error(t('appendNotConfirmed'));
     } catch (error) {
       // The HTTP request may have arrived even if its response was lost.
       // Retain cache so any already-appended markers remain valid.
@@ -173,13 +175,13 @@ function activate(context) {
 
   async function show() {
     if (panel) { panel.reveal(); return; }
-    if (busy) throw new Error('上一批图片仍在处理中，请稍后再打开面板。');
+    if (busy) throw new Error(t('stillBusy'));
     root = await workspace();
     if (!root) return;
-    if (await install(root)) await vscode.window.showInformationMessage('图片与会话名称插件已安装。请退出并重启此项目中的 OpenCode CLI；面板会自动连接。');
+    if (await install(root)) await vscode.window.showInformationMessage(t('installed'));
     connection = undefined;
     lastConnectionState = undefined;
-    panel = vscode.window.createWebviewPanel('opencodeSshImages', 'OpenCode 图片附件', vscode.ViewColumn.Beside, {
+    panel = vscode.window.createWebviewPanel('opencodeSshImages', t('panelTitle'), vscode.ViewColumn.Beside, {
       enableScripts: true, retainContextWhenHidden: true,
       localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'media')],
     });
@@ -224,7 +226,7 @@ function activate(context) {
     const uri = await workspace();
     if (!uri) return;
     const changed = await install(uri);
-    await vscode.window.showInformationMessage(changed ? '图片 CLI 插件已安装/更新。请退出并重新启动 OpenCode CLI。' : 'CLI 插件已是当前版本。若尚未加载，请重启 OpenCode CLI。');
+    await vscode.window.showInformationMessage(changed ? t('installedBridge') : t('currentBridge'));
   });
 }
 
